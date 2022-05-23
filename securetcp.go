@@ -89,6 +89,7 @@ func (secureSocket *SecureTCPConn) DecodeCopy(dst io.Writer) error {
 			}
 		}
 		if readCount > 0 {
+			//
 			writeCount, errWrite := dst.Write(buf[0:readCount])
 			if errWrite != nil {
 				return errWrite
@@ -117,6 +118,7 @@ func DialEncryptedTCP(raddr *net.TCPAddr, cipher *Cipher) (*SecureTCPConn, error
 
 // see net.ListenTCP
 func ListenEncryptedTCP(laddr *net.TCPAddr, cipher *Cipher, handleConn func(localConn *SecureTCPConn), didListen func(listenAddr *net.TCPAddr)) error {
+	// listen fd
 	listener, err := net.ListenTCP("tcp", laddr)
 	if err != nil {
 		return err

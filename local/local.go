@@ -20,14 +20,17 @@ type LsLocal struct {
 // 3. 转发socket数据到墙外代理服务端
 // 4. 把服务端返回的数据转发给用户的浏览器
 func NewLsLocal(password string, listenAddr, remoteAddr string) (*LsLocal, error) {
+	// 解析密码
 	bsPassword, err := lightsocks.ParsePassword(password)
 	if err != nil {
 		return nil, err
 	}
+	// 本地tcp
 	structListenAddr, err := net.ResolveTCPAddr("tcp", listenAddr)
 	if err != nil {
 		return nil, err
 	}
+	// 远程tcp
 	structRemoteAddr, err := net.ResolveTCPAddr("tcp", remoteAddr)
 	if err != nil {
 		return nil, err
@@ -47,6 +50,7 @@ func (local *LsLocal) Listen(didListen func(listenAddr *net.TCPAddr)) error {
 func (local *LsLocal) handleConn(userConn *lightsocks.SecureTCPConn) {
 	defer userConn.Close()
 
+	// 建立远程的tcp链接
 	proxyServer, err := lightsocks.DialEncryptedTCP(local.RemoteAddr, local.Cipher)
 	if err != nil {
 		log.Println(err)
@@ -57,6 +61,7 @@ func (local *LsLocal) handleConn(userConn *lightsocks.SecureTCPConn) {
 	// 进行转发
 	// 从 proxyServer 读取数据发送到 localUser
 	go func() {
+		// 写给userConn
 		err := proxyServer.DecodeCopy(userConn)
 		if err != nil {
 			// 在 copy 的过程中可能会存在网络超时等 error 被 return，只要有一个发生了错误就退出本次工作
